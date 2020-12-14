@@ -4,7 +4,7 @@ import {HTML5Backend} from 'react-dnd-html5-backend'
 import {useDispatch, useSelector} from 'react-redux'
 import {DraggableType} from '../../../config/dnd'
 import {reviewAttendeesAgain} from '../attendees/attendeesSlice'
-import {selectAvailableCoaches, selectAvailableStudents, selectPairingGroups} from './pairingsSlice'
+import {selectAvailableCoaches, selectAvailableStudents, selectPairingGroups, moveCoachToGroup, moveStudentToGroup} from './pairingsSlice'
 import {AttendeeCompactCard} from './dragAndDrop/AttendeeCompactCard'
 import {DraggableName} from './dragAndDrop/DraggableName'
 import {StudentDropzone} from './dragAndDrop/StudentDropzone'
@@ -19,6 +19,15 @@ export const PairingsStep = () => {
   const groups = useSelector(selectPairingGroups)
   const dispatch = useDispatch()
 
+  const generatePairs = () => {
+    availableStudents.forEach((student, index) => {
+      const coach = availableCoaches[index]
+      const groupId = index + 1
+      dispatch(moveCoachToGroup({coachId: coach.id, groupId}))
+      dispatch(moveStudentToGroup({studentId: student.id, groupId}))
+    })
+  }
+
   return (
     <DndProvider backend={HTML5Backend}>
       <div className='PairingsStep'>
@@ -32,6 +41,15 @@ export const PairingsStep = () => {
             onClick={() => dispatch(reviewAttendeesAgain())}
           >
             Review attendance and skills
+          </Button>
+
+          <Button
+            className='PairingsStepBack'
+            variant='contained'
+            color='secondary'
+            onClick={generatePairs}
+          >
+            Create proposal
           </Button>
         </div>
         <div className='PairingsStepContent'>
