@@ -19,20 +19,18 @@ const something = (solutionA, solutionB) => [solutionA, solutionB]
 
 const crossover = solutions => {
   const nextGeneration = []
-
-  for(let i = 0; i < i.length; i +=2) {
-    solutionA = solutions[i]
-    solutionB = solutions[i+1]
-    childA, childB = something(solutionA, solutionB)
-    nextGeneration.push(childA, childB)
+  for(let i = 0; i < solutions.length; i +=2) {
+    const solutionA = solutions[i]
+    const solutionB = solutions[i+1]
+    const [childA, childB] = something(solutionA, solutionB)
+    nextGeneration.push(childA)
+    nextGeneration.push(childB)
   }
 
   return nextGeneration
 }
 
-const selection = (...solutions) => {
-  return solutions.sort(solution => -fitness(solution))
-}
+const selection = solutions => solutions.sort(solution => -fitness(solution))
 
 const generateInitialPopulation = (students, coaches) => {
   const solutions = []
@@ -47,12 +45,12 @@ const generate = (students, coaches) => {
   let solutions = generateInitialPopulation(students, coaches)
 
   for(let i = 0; i < GENERATIONS_LIMIT; i++) {
-    let sortedSolutions = selection(solutions)
+    const sortedSolutions = selection(solutions)
     const eliteSolutions = sortedSolutions.splice(0, 4)
-    solutions = eliteSolutions.push(crossover(sortedSolutions))
+    solutions = eliteSolutions.concat(crossover(sortedSolutions))
   }
 
-  return solutions
+  return selection(solutions)
 }
 
 
