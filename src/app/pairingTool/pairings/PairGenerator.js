@@ -15,7 +15,30 @@ const fitness = solution => solution.filter(pair => pairFitness(pair) >= 0).leng
 
 const pairFitness = pair => pair.student.languages.some(language => pair.coach.languages.includes(language)) ? 1 : 0
 
-const something = (solutionA, solutionB) => [solutionA, solutionB]
+const canBeIncluded = (candidatePair, solution) => solution.every(pair => pair.student !== candidatePair.student && pair.coach !== candidatePair.coach)
+
+const generateFrom = (preferedSolution, secondarySolution) => {
+  preferedSolution.concat(secondarySolution.filter(pair => canBeIncluded(pair, preferedSolution)))
+  const assignedStudents = []
+  const assignedCoaches = []
+
+  preferedSolution.forEach(pair => {
+    assignedStudents.push(pair.student)
+    assignedCoaches.push(pair.coach)
+  })
+
+  const remainingStudents = preferedSolution.map(pair => pair.student).filter(student => assignedStudents.includes(student))
+  const remainingCoaches = preferedSolution.map(pair => pair.coach).filter(coach => assignedCoaches.includes(coach))
+
+  return preferedSolution.concat(assignRandomly(remainingStudents, remainingCoaches))
+}
+
+const something = (solutionA, solutionB) => {
+  const eliteFromA = solutionA.sort(pairFitness).slice(0, 4)
+  const eliteFromB = solutionB.sort(pairFitness).slice(0, 4)
+
+  return [generateFrom(eliteFromA, eliteFromB), generateFrom(eliteFromB, eliteFromA)]
+}
 
 const crossover = solutions => {
   const nextGeneration = []
@@ -50,13 +73,11 @@ const generate = (students, coaches) => {
     solutions = eliteSolutions.concat(crossover(sortedSolutions))
   }
 
-  return selection(solutions)
+  return selection(solutions)[0]
 }
 
+const generator = {
+  generate
+}
 
-const attendee = (name, id, languages) => ({name, id, languages})
-
-let students = [attendee('fernando', 1, ['JS', 'Java', 'Ruby']), attendee('jo', 2, ['Python', 'Java'])]
-let coaches =  [attendee('salva', 3, ['Java']), attendee('lori', 4, ['Python', 'Java'])]
-
-console.log(generate(students, coaches))
+export default generator

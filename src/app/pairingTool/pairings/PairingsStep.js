@@ -12,6 +12,7 @@ import {CoachDropzone} from './dragAndDrop/CoachDropzone'
 import Button from '@material-ui/core/Button'
 import SkipPreviousIcon from '@material-ui/icons/SkipPrevious'
 import './PairingsStep.scss'
+import pairGenerator from './pairGenerator'
 
 export const PairingsStep = () => {
   const availableStudents = useSelector(selectAvailableStudents)
@@ -20,11 +21,10 @@ export const PairingsStep = () => {
   const dispatch = useDispatch()
 
   const generatePairs = () => {
-    availableStudents.forEach((student, index) => {
-      const coach = availableCoaches[index]
-      const groupId = index + 1
-      dispatch(moveCoachToGroup({coachId: coach.id, groupId}))
-      dispatch(moveStudentToGroup({studentId: student.id, groupId}))
+    const assignments = pairGenerator.generate(availableStudents, availableCoaches)
+    assignments.forEach((pair, index) => {
+      dispatch(moveCoachToGroup({coachId: pair.coach.id, groupId: index + 1}))
+      dispatch(moveStudentToGroup({studentId: pair.student.id, groupId: index + 1}))
     })
   }
 
