@@ -15,39 +15,14 @@ const fitness = solution => solution.filter(pair => pairFitness(pair) >= 0).leng
 
 const pairFitness = pair => pair.student.languages.some(language => pair.coach.languages.includes(language)) ? 1 : 0
 
-const canBeIncluded = (candidatePair, solution) => solution.every(pair => pair.student !== candidatePair.student && pair.coach !== candidatePair.coach)
-
-const generateFrom = (preferedSolution, secondarySolution) => {
-  preferedSolution.concat(secondarySolution.filter(pair => canBeIncluded(pair, preferedSolution)))
-  const assignedStudents = []
-  const assignedCoaches = []
-
-  preferedSolution.forEach(pair => {
-    assignedStudents.push(pair.student)
-    assignedCoaches.push(pair.coach)
-  })
-
-  const remainingStudents = preferedSolution.map(pair => pair.student).filter(student => assignedStudents.includes(student))
-  const remainingCoaches = preferedSolution.map(pair => pair.coach).filter(coach => assignedCoaches.includes(coach))
-
-  return preferedSolution.concat(assignRandomly(remainingStudents, remainingCoaches))
-}
-
-const something = (solutionA, solutionB) => {
-  const eliteFromA = solutionA.sort(pairFitness).slice(0, 4)
-  const eliteFromB = solutionB.sort(pairFitness).slice(0, 4)
-
-  return [generateFrom(eliteFromA, eliteFromB), generateFrom(eliteFromB, eliteFromA)]
-}
-
-const crossover = solutions => {
+const crossover = (solutions, students, coaches) => {
   const nextGeneration = []
   for(let i = 0; i < solutions.length; i +=2) {
     const solutionA = solutions[i]
     const solutionB = solutions[i+1]
-    const [childA, childB] = something(solutionA, solutionB)
-    nextGeneration.push(childA)
-    nextGeneration.push(childB)
+    const betterSolution = selection([solutionA, solutionB])[0]
+    nextGeneration.push(betterSolution)
+    nextGeneration.push(assignRandomly(students, [...coaches]))
   }
 
   return nextGeneration
@@ -66,11 +41,13 @@ const generateInitialPopulation = (students, coaches) => {
 
 const generate = (students, coaches) => {
   let solutions = generateInitialPopulation(students, coaches)
+  console.log('initial solutions', solutions)
 
   for(let i = 0; i < GENERATIONS_LIMIT; i++) {
     const sortedSolutions = selection(solutions)
     const eliteSolutions = sortedSolutions.splice(0, 4)
-    solutions = eliteSolutions.concat(crossover(sortedSolutions))
+    solutions = eliteSolutions.concat(crossover(sortedSolutions, students, coaches))
+    console.log('new solutions', solutions)
   }
 
   return selection(solutions)[0]
